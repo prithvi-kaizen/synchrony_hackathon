@@ -1,0 +1,34 @@
+/* Fix for Mux Player video positioning */
+mux-player {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 16/9 !important;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+}
+
+mux-player video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  aspect-ratio: 16/9 !important;
+  border-radius: 26px !important;
+}
+
+/* Ensure video container fills properly */
+mux-player .media-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 26px !important;
+}
+
+/* Remove any default margins/padding */
+mux-player * {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide Mux analytics errors in development */
+@media (max-width: 0px) {
+  .mux-analytics { display: none; }
+}
