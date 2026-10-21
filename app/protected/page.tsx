@@ -24,7 +24,7 @@ export default async function ProtectedPage() {
           <div className="text-center">
             <h2 className="font-bold text-3xl mb-4">How are you feeling today?</h2>
             <p className="text-muted-foreground text-lg mb-6">
-              Let AI analyze your mood from a quick photo and get personalized insights
+              Describe your mood, save a reflection, and follow your check-ins over time
             </p>
           </div>
           <CaptureMood />

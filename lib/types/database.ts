@@ -34,7 +34,7 @@ export interface Database {
 export interface MoodAnalysisResult {
   mood_score: number
   predicted_mood: string
-  confidence_level: number
+  confidence_level?: number
   secondary_emotions?: string[]
   mood_description: string
   improvement_suggestions?: string[]
