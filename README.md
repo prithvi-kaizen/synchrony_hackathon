@@ -1,75 +1,39 @@
-## Clone and run locally
+# Mood check-ins
 
-2. Install the app
+A Next.js app for recording your own mood and reviewing check-in history. Supabase provides sign-in and storage; Chart.js displays trends.
 
-   ```bash
-   npm install
-   ```
+Choose a mood label and a score from 1 to 10, then optionally write a note. **Save check-in** stores those values without calling an AI provider. **Suggest a next step** sends the written check-in to Google Gemini through the server. The app does not use a camera or infer mood from a face.
 
-4. Rename `.env.example` to `.env.local` and update the following:
+## Run locally
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   NEXT_PUBLIC_GOOGLE_API_KEY=[INSERT GEMINI API KEY]
-   ```
+Use Node.js 22 or newer.
 
-5. You can now run the Next.js local development server:
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
 
-   ```bash
-   npm run dev
-   ```
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY` to your Supabase project values. Configure Supabase sign-in redirects for your local and deployed URLs.
 
+For optional suggestions, set **server-only** `GOOGLE_API_KEY` and `GEMINI_MODEL` to a text model available to your Google project. See [Google's text generation documentation](https://ai.google.dev/gemini-api/docs/text-generation). Without both values, suggestions return an unavailable message and check-in saving still works.
 
+Never use `NEXT_PUBLIC_GOOGLE_API_KEY`: Next.js embeds public variables in browser code. Remove that old variable from your hosting settings. If an earlier deployment used a real public key, revoke it in Google AI Studio and configure a replacement as `GOOGLE_API_KEY`, then redeploy. Do not commit `.env.local`.
 
-________________________________________________________________________________________________________________________________________________________________________
-________________________________________________________________________________________________________________________________________________________________________
+## Storage and access
 
+The existing `mood_checkins` table stores `user_id`, `mood_score`, `predicted_mood`, `user_note`, and `created_at`. The legacy column `predicted_mood` now contains the user's own label. Previous entries are unchanged.
 
+Enable Supabase row-level security and policies that restrict select/insert/update/delete to rows whose `user_id = auth.uid()`. The public Supabase key does not replace database access rules. This change does not modify an existing database or its policies.
 
-# 🧠 Mood Check-in App for Developers
+`POST /api/mood` validates the signed-in Supabase user before calling Gemini. It accepts text only, caps input and output, and limits each user to five suggestion requests per minute per server instance. For public production traffic, add a shared rate limiter and provider spending limits; instance memory does not enforce a deployment-wide quota. Reflections are sent to Google only when suggestions are requested. This is a personal reflection tool, not a diagnostic service.
 
-A lightweight web application that empowers developers to track their emotional well-being through daily reflections. It uses **Gemini API** to detect mood, stores data securely via **Supabase**, and visualizes trends over time using **Chart.js**.
+## Checks
 
-🌐 **Live Demo**: [https://synchrony-hackathon-yemq.vercel.app](https://synchrony-hackathon-yemq.vercel.app)
+```sh
+node --test tests/*.test.mjs
+npx tsc --noEmit
+npm run build
+```
 
----
-
-## 🚀 Features
-
-- ✨ **AI Mood Detection**  
-  Analyze user input with Google’s **Gemini API** to predict emotional tone (e.g., happy, stressed, anxious).
-
-- 📝 **Daily Mood Logging**  
-  Clean, user-friendly interface where developers write a short journal-style entry.
-
-- 📊 **Interactive Dashboard**  
-  Visualizes mood data using **Chart.js**:
-  - Line graph for daily mood changes
-  - Pie chart for mood distribution
-  - Weekly summary view
-
-- 🛡️ **Secure Storage with Supabase**  
-  Stores all user data with authentication and real-time syncing.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer         | Tech Used              |
-|---------------|------------------------|
-| Frontend      | React.js               |
-| Backend & DB  | Supabase               |
-| AI Integration| Gemini API (LLM)       |
-| Charts        | Chart.js               |
-| Deployment    | Vercel                 |
-
----
-
-## 🔄 How It Works
-
-1. **User logs in**
-2. **Writes a mood update** in natural language
-3. **Gemini API** analyzes and returns the emotional tone
-4. **Supabase** stores the entry and mood
-5. **Dashboard** auto-updates to reflect the mood history
+Builds require the public Supabase settings. Tests use stubs and do not send entries to a provider.
